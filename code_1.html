@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">    
+    <title>IFE ECMAScript</title>
+</head>
+<body>
+    <button>开始营业</button>   
+    <div></div>         
+ <script>
+     var div=document.querySelector("div");
+         menuList=[new Food("hamburger",20,10),new Food("fish",15,5),new Food("chips",10,3)];
+         inn=new Store(1);
+         console.log(inn);
+     document.querySelector("button").onclick=function(){
+         for(let i=0;i<10;i++){
+             let p=new Client;
+             inn.queue.push(p);
+         }
+         inn.startDo();
+     }
+
+     function Store(seats){
+         this.seats=seats;
+         this.cash=0;
+         this.staffList={};
+         this.queue=[];
+         this.dining=[];
+     }
+     Store.prototype.invite=function(obj){
+         this.staffList[obj.id]=obj;
+     }
+     Store.prototype.layoff=function(obj){
+         delete this.staffList[obj.id];
+     }
+     Store.prototype.startDo=function(){
+         while(this.seats>0){
+                 let c=this.queue.shift();
+                 this.dining.push(c);
+                 this.seats--;
+                 this.dining[0].order();
+             }
+         }
+     
+
+     var idCounter = 1;
+     function Staff(name,pay){
+         this.name=name;
+         this.pay=pay;
+         this.id=idCounter++;
+         this.workList=[];
+         this.task=[];
+     }
+     Staff.prototype.finish=function(str){
+        let time=startTime();
+        this.workList.push(time+" "+str);
+        div.innerHTML+=time+" "+this.name+"完成"+str+"<br>"
+     }
+     function Waiter(name,pay){
+         Staff.call(this,name,pay);
+     }
+     Waiter.prototype=Object.create(Staff.prototype);
+     Waiter.prototype.constructor =Waiter;
+     Waiter.prototype.work=function(obj){
+        if(arguments.length>1){
+            let w="";
+                a=new getCook();
+            for(let i=0;i<arguments.length;i++){
+                this.task.push(arguments[i]);
+            }
+            while(this.task.length>0){
+                let f=this.task.shift()
+                a.task.push(f);
+                w+=f.name+",";
+            }
+            if(a.free){
+                a.work();
+            }
+            this.finish("点单:"+w);
+         }else{
+            this.task.push(obj);
+            let f=this.task.shift();
+            this.finish("上菜:"+f.name);
+            inn.dining[0].foot.push(f);
+            inn.dining[0].eat();
+         }
+     }
+     var getWaiter=(function(name,pay){
+        var instance;
+        return function(name,pay){
+            if(!instance){
+                instance=new Waiter(name,pay);
+                inn.invite(instance);
+            }
+            return instance;
+        }
+     })();
+    var a = new getWaiter("jay",2000);
+
+
+     function Cook(name,pay){
+         Staff.call(this,name,pay);
+         this.free=true;
+     }
+     Cook.prototype=Object.create(Staff.prototype);
+     Cook.prototype.constructor =Cook;
+     Cook.prototype.work=function(){
+        this.free=false;
+        let a=new getWaiter;
+            cook=this;
+            time=setTimeout(function(){
+                let f=cook.task.shift();
+                cook.finish("烹饪:"+f.name);
+                a.work(f);
+                cook.work(); 
+                if(cook.task.length==0){
+                    clearTimeout(time);
+                    cook.free=true;
+                }
+            },2000)
+     }
+     var getCook=(function(name,pay){
+        var instance;
+        return function(name,pay){
+            if(!instance){
+                instance=new Cook(name,pay);
+                inn.invite(instance);
+            }
+            return instance;
+        }
+     })();
+    var b = new getCook("tom",3000);
+
+     function Food(name,price,cost){
+         this.name=name;
+         this.price=price;
+         this.cost=cost;
+     }
+
+     function Client(){
+         this.foot=[];
+     }
+     Client.prototype.order=function(){
+         inn.dining.push(this);
+         let a=new getWaiter();
+             f1=menuList[random(0,3)];
+             f2=menuList[random(0,3)];
+             time=setTimeout(function(){
+                div.innerHTML+="顾客点餐："+f1.name+","+f2.name+"<br>";
+                a.work(f1,f2);
+             },500)
+     }
+     Client.prototype.eat=function(){
+         let p=this;
+            if(p.foot.length==2){
+                div.innerHTML+="顾客用餐<br>"
+                let num=0;
+                    pay=0;
+                    time=setTimeout(function(){
+                    while(p.foot.length>0){
+                        let d=p.foot.shift();
+                        pay+=d.price
+                        num+=d.price-d.cost;
+                    }
+                    div.innerHTML+="顾客买单 ￥"+pay+"<br><br>";
+                    inn.cash+=num;
+                    remove(inn.dining,p);
+                    inn.seats++;
+                    if(inn.queue.length>0){
+                        inn.startDo();
+                    }
+                },2000)
+            }
+     }
+
+    function startTime(){
+        let now=new Date();
+            year=now.getFullYear();
+            month=now.getMonth()+1;           
+            day=now.getDate();            
+            weekDay=now.getDay();
+            h=now.getHours();
+            m=now.getMinutes();
+            s=now.getSeconds();
+            month=checkTime(month);
+            day= checkTime(day);
+            weekDay=checkWeek(weekDay);
+            h=checkTime(h);
+            m=checkTime(m);
+            s=checkTime(s);
+            return year+" 年 "+month+" 月 "+day+" 日 "+weekDay+" "+h+":"+m+":"+s;
+    }
+    function checkWeek(i){
+        switch(i){
+            case 0:
+            i ="星期日";
+            break;
+            case 1:
+            i ="星期一";
+            break;
+            case 2:
+            i ="星期二";
+            break;
+            case 3:
+            i ="星期三";
+            break;
+            case 4:
+            i ="星期四";
+            break;
+            case 5:
+            i ="星期五";
+            break;
+            case 6:
+            i ="星期六";
+            break;
+        }
+        return i;
+    }
+    function checkTime(i)
+         {if (i<10) {
+             i="0" + i
+             }
+             return i;
+         }
+    function remove(arr,obj){
+        arr.splice(arr.indexOf(obj),1);
+    }
+    function random(min,max) {
+    var num = Math.floor(Math.random()*(max-min)) + min;
+    return num;
+    }
+//测试
+
+
+ </script>
+</body>
+</html>
